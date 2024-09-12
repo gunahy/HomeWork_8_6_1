@@ -45,6 +45,7 @@ class Program
     /// </summary>
     /// <param name="directoryPath">Путь к директории для очистки.</param>
     /// <param name="timeLimit">Время, по истечении которого файлы/папки считаются устаревшими и подлежат удалению.</param>
+    /// <param name="logFilePath">Запись результата удаления файла/папки в лог-файл</param>
     static void CleanDirectory(string directoryPath, TimeSpan timeLimit, string logFilePath)
     {
         // Проверяем, существует ли директория перед обработкой
