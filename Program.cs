@@ -7,17 +7,40 @@ namespace Module8
 
     class Program
     {
+        static long initSize = 0;
+        static long freedSize = 0;
+        static int deletedFilesCount = 0; 
+        static int deletedDirsCount = 0;
+
         static void Main(string[] args)
         {
             string directoryPath = @"C:\testProgram"; // Путь к папке
             TimeSpan timeLimit = TimeSpan.FromMinutes(30);
-
             // Путь к лог-файлу во временной папке
             string logFilePath = Path.GetTempFileName();
 
             try
             {
-                CleanDirectory(directoryPath, timeLimit, logFilePath);
+                if (Directory.Exists(directoryPath))
+                {
+                    initSize = DirectorySize.GetDirectorySize(directoryPath);
+                    Console.WriteLine($"Исходный размер папки: {initSize} байт");
+
+                    CleanDirectory(directoryPath, timeLimit, logFilePath);
+
+                    long finalSize = DirectorySize.GetDirectorySize(directoryPath);
+                    Console.WriteLine($"Освобождено: {freedSize} байт");
+                    Console.WriteLine($"Текущий размер папки: {finalSize} байт");
+                    Console.WriteLine("------------------------------------------");
+                    Console.WriteLine($"Удалено файлов: {deletedFilesCount}");
+                    Console.WriteLine($"Удалено папок: {deletedDirsCount}");
+
+                }
+                else
+                {
+                    Console.WriteLine($"Папка не найдена: {directoryPath}");
+                }
+
             }
             catch (Exception e)
             {
@@ -65,6 +88,9 @@ namespace Module8
                 DateTime lastAccessTime = File.GetLastAccessTime(file);
                 if (DateTime.Now - lastAccessTime > timeLimit)
                 {
+                    long fileSize = new FileInfo(file).Length;
+                    freedSize += fileSize;
+                    deletedFilesCount++;
                     Logger(logFilePath, file);
                     File.Delete(file);
                 }
@@ -78,9 +104,10 @@ namespace Module8
 
                 // Проверяем и удаляем пустые папки, если они не использовались дольше указанного времени
                 DateTime lastAccessTime = Directory.GetLastWriteTime(dir);
-                Console.WriteLine(lastAccessTime.ToString());
+
                 if (DateTime.Now - lastAccessTime > timeLimit && IsDirectoryEmpty(dir))
                 {
+                    deletedDirsCount++;
                     Logger(logFilePath, dir);
                     Directory.Delete(dir, true);
                 }
